@@ -1,0 +1,1621 @@
+
+# AI Research & Decision-Making Agent — LangGraph
+
+## 1. Project Overview
+
+### Project Name
+
+**AI Research & Decision-Making Agent**
+
+### Main Technologies
+
+* Python
+* LangGraph
+* LangChain
+* LLM API
+* Streamlit
+* Web Search
+* Python-based Calculator Tool
+* Custom Text Analysis Tool
+* Git/GitHub
+* VS Code
+* Antigravity as the coding assistant
+
+### Project Level
+
+**Intermediate → Upper-Intermediate**
+
+The goal is **not** to build a huge production system.
+
+The goal is to build a clean, understandable **agentic AI application** that demonstrates:
+
+* LangGraph
+* Agent state
+* Nodes
+* Edges
+* Conditional routing
+* Tool calling
+* Tool execution
+* Agent reasoning loop
+* Multiple tools
+* Error handling
+* Iteration limits
+* Final response synthesis
+* Streamlit interface
+
+---
+
+# 2. Why We Are Building This Project
+
+I already have another project:
+
+> **Enterprise Knowledge Assistant — RAG Application**
+
+That project focuses on:
+
+```text
+Documents
+   ↓
+Chunking
+   ↓
+Embeddings
+   ↓
+Vector Database
+   ↓
+Similarity Search
+   ↓
+Retrieved Context
+   ↓
+LLM
+   ↓
+Answer
+```
+
+That project demonstrates:
+
+* RAG
+* LangChain
+* embeddings
+* vector databases
+* semantic search
+* document processing
+* grounded generation
+
+The second project must therefore **NOT simply be another RAG application with LangGraph added to it**.
+
+Instead, this project should focus on:
+
+> **Agentic AI + LangGraph + Tool Calling + Decision Making**
+
+The important distinction is:
+
+### Project 1
+
+**"Find relevant information from my knowledge base and answer."**
+
+### Project 2
+
+**"Understand what the user wants, decide what tools are necessary, use those tools, evaluate the results, and produce a final decision/recommendation."**
+
+---
+
+# 3. Core Project Objective
+
+Build an AI agent that receives a user's research or decision-making task and determines what actions are necessary to answer it.
+
+For example:
+
+> "Compare NVIDIA and AMD's latest AI GPUs and tell me which is better for an AI startup with a $10,000 budget."
+
+The agent should be capable of:
+
+```text
+User Request
+      ↓
+Understand Request
+      ↓
+Decide What Tools Are Needed
+      ↓
+┌───────────────┬───────────────┬───────────────┐
+│ Web Search    │ Calculator    │ Text Analysis │
+└───────────────┴───────────────┴───────────────┘
+      ↓
+Observe Tool Results
+      ↓
+Determine Whether More Work Is Needed
+      ↓
+Synthesize Information
+      ↓
+Final Answer
+```
+
+The agent should **not blindly call every tool**.
+
+It should decide which tool is appropriate.
+
+---
+
+# 4. Example Use Cases
+
+The application should support different types of requests.
+
+### Use Case 1 — Web Research
+
+User:
+
+> "What are the major differences between PostgreSQL and MongoDB?"
+
+Agent:
+
+```text
+Understand request
+      ↓
+Web Search
+      ↓
+Analyze results
+      ↓
+Final comparison
+```
+
+---
+
+### Use Case 2 — Calculation
+
+User:
+
+> "If I invest ₹20,000 every month for 5 years, how much money will I contribute?"
+
+Agent:
+
+```text
+Understand request
+      ↓
+Calculator
+      ↓
+Final answer
+```
+
+---
+
+### Use Case 3 — Research + Calculation
+
+User:
+
+> "Compare two GPUs and calculate which gives better performance per dollar."
+
+Agent:
+
+```text
+Understand request
+      ↓
+Web Search
+      ↓
+Collect specifications/prices
+      ↓
+Calculator
+      ↓
+Analyze
+      ↓
+Final recommendation
+```
+
+---
+
+### Use Case 4 — Text Analysis
+
+User provides:
+
+> "Analyze this job description and identify the important skills."
+
+Agent:
+
+```text
+User text
+   ↓
+Text Analysis Tool
+   ↓
+Extract skills
+   ↓
+Final response
+```
+
+---
+
+### Use Case 5 — Multi-tool Research
+
+User:
+
+> "Research three AI frameworks, compare their GitHub popularity, calculate the average number of stars, and recommend one for a beginner."
+
+Potential flow:
+
+```text
+Web Search
+     ↓
+Web Search
+     ↓
+Web Search
+     ↓
+Calculator
+     ↓
+Analysis
+     ↓
+Recommendation
+```
+
+This demonstrates why an **agentic workflow** is useful.
+
+---
+
+# 5. What Makes This an AI Agent?
+
+A normal LLM application might look like:
+
+```text
+User
+ ↓
+LLM
+ ↓
+Answer
+```
+
+A simple tool-calling application might look like:
+
+```text
+User
+ ↓
+LLM
+ ↓
+Tool
+ ↓
+LLM
+ ↓
+Answer
+```
+
+Our application should go further:
+
+```text
+User
+ ↓
+Agent
+ ↓
+Decision
+ ↓
+Tool
+ ↓
+Observation
+ ↓
+Agent
+ ↓
+Decision
+ ↓
+Another Tool
+ ↓
+Observation
+ ↓
+Agent
+ ↓
+Final Answer
+```
+
+The important concept is the **control loop**.
+
+The agent receives information, evaluates it, and determines the next action.
+
+---
+
+# 6. LangGraph Concepts I Must Learn
+
+Before implementing the complete application, I should understand these concepts.
+
+## 6.1 Graph
+
+LangGraph represents an application/workflow as a graph.
+
+A graph contains:
+
+```text
+Nodes
+Edges
+State
+```
+
+---
+
+## 6.2 State
+
+State contains information that travels through the graph.
+
+Example:
+
+```python
+class AgentState(TypedDict):
+    messages: list
+    task: str
+    tool_results: list
+    final_answer: str
+    iterations: int
+```
+
+The exact state structure should be decided during implementation.
+
+I should understand:
+
+* Why state is necessary
+* What information belongs in state
+* How nodes read state
+* How nodes update state
+
+---
+
+# 7. Nodes
+
+A node represents a unit of work.
+
+Potential nodes:
+
+```text
+START
+  ↓
+Agent
+  ↓
+Tool
+  ↓
+Agent
+  ↓
+Final Response
+  ↓
+END
+```
+
+Possible implementation nodes:
+
+### Agent Node
+
+Responsible for:
+
+* understanding the task
+* deciding whether a tool is required
+* selecting a tool
+* generating tool arguments
+* evaluating tool results
+* deciding whether more work is required
+
+### Tool Node
+
+Executes the selected tool.
+
+### Final Answer Node
+
+Produces the final user-facing answer.
+
+---
+
+# 8. Edges
+
+Edges determine how the graph moves between nodes.
+
+Simple edge:
+
+```text
+Agent → Tool
+```
+
+Conditional edge:
+
+```text
+Agent
+  │
+  ├── needs web search → Web Search
+  │
+  ├── needs calculation → Calculator
+  │
+  ├── needs text analysis → Text Analysis
+  │
+  └── enough information → Final Answer
+```
+
+I need to understand **conditional routing** rather than simply copying code.
+
+---
+
+# 9. The Tools
+
+The initial project should have exactly **three primary tools**.
+
+Do not add unnecessary tools initially.
+
+---
+
+## Tool 1 — Web Search
+
+Purpose:
+
+Allow the agent to retrieve current information from the web.
+
+Example:
+
+```text
+Search query:
+"latest NVIDIA AI GPU specifications"
+```
+
+Returns:
+
+```text
+Search results
+titles
+URLs
+snippets/content
+```
+
+The agent then uses the results as information for its reasoning.
+
+### Learning objectives
+
+Understand:
+
+* What a tool is
+* How an LLM decides to call a tool
+* Tool input schema
+* Tool output
+* Tool errors
+* How tool results return to the agent
+
+---
+
+# 10. Tool 2 — Calculator
+
+This should initially be a **local Python tool**.
+
+Example:
+
+```text
+Input:
+20000 * 12 * 5
+
+Output:
+1200000
+```
+
+The calculator should NOT require an external API.
+
+Possible use cases:
+
+```text
+monthly investment × months
+percentage calculations
+averages
+price/performance ratios
+budget calculations
+```
+
+### Why have a calculator tool?
+
+Because LLMs are not reliable arithmetic engines.
+
+Instead of asking:
+
+> "LLM, calculate this."
+
+The agent can use:
+
+```text
+Calculator Tool
+```
+
+and receive the exact numerical result.
+
+---
+
+# 11. Tool 3 — Text Analysis
+
+Create a custom Python tool for basic text analysis.
+
+For example:
+
+Input:
+
+```text
+Python, SQL, AWS, Docker, Kubernetes,
+Machine Learning, LangChain
+```
+
+The tool can perform operations such as:
+
+* word count
+* sentence count
+* keyword extraction
+* basic text statistics
+* identifying repeated terms
+
+The LLM can then use the output.
+
+The first version should remain simple.
+
+Do not turn this into a sophisticated NLP system.
+
+---
+
+# 12. Agent Decision Process
+
+The agent should follow a controlled decision process.
+
+Conceptually:
+
+```text
+START
+  ↓
+Read User Task
+  ↓
+Determine Required Action
+  ↓
+Is information needed?
+  ├── Yes → Web Search
+  │
+  └── No
+       ↓
+Is calculation required?
+  ├── Yes → Calculator
+  │
+  └── No
+       ↓
+Is text analysis required?
+  ├── Yes → Text Analysis
+  │
+  └── No
+       ↓
+Generate Final Answer
+```
+
+But eventually the agent should be capable of using **multiple tools sequentially**.
+
+---
+
+# 13. Controlled Agent Loop
+
+One of the most important parts of the project is learning the agent loop.
+
+Example:
+
+```text
+START
+ ↓
+Agent
+ ↓
+Web Search
+ ↓
+Agent
+ ↓
+Calculator
+ ↓
+Agent
+ ↓
+Final Answer
+ ↓
+END
+```
+
+The second Agent invocation receives the previous tool output.
+
+It asks:
+
+> "Do I have enough information?"
+
+If yes:
+
+```text
+→ Final Answer
+```
+
+If no:
+
+```text
+→ another tool
+```
+
+---
+
+# 14. Prevent Infinite Loops
+
+A major requirement is to make the agent reliable.
+
+Never allow:
+
+```text
+Agent → Tool → Agent → Tool → Agent → Tool → ...
+```
+
+without a limit.
+
+Add:
+
+```python
+MAX_ITERATIONS = 5
+```
+
+or an appropriate configurable value.
+
+Example:
+
+```text
+iterations = 0
+
+Agent
+ ↓
+Tool
+ ↓
+Agent
+ ↓
+Tool
+ ↓
+Agent
+ ↓
+Tool
+ ↓
+Iteration limit reached
+ ↓
+Final response
+```
+
+The exact implementation should be decided while building it.
+
+I should understand **why** the limit exists.
+
+---
+
+# 15. Error Handling
+
+The project should deliberately handle failures.
+
+### Case 1 — Search fails
+
+```text
+Web Search
+   ↓
+Error
+   ↓
+Agent
+   ↓
+Explain limitation / try alternative
+```
+
+---
+
+### Case 2 — Calculator receives invalid input
+
+```text
+Calculator
+   ↓
+Invalid expression
+   ↓
+Error
+   ↓
+Agent handles failure
+```
+
+---
+
+### Case 3 — LLM fails
+
+The application should return a meaningful error instead of crashing.
+
+---
+
+### Case 4 — User asks something unsupported
+
+Example:
+
+> "Book me a flight to London."
+
+The agent does not have a flight-booking tool.
+
+It should say that the current agent cannot perform that action.
+
+It should **not pretend that it booked anything**.
+
+---
+
+# 16. Reliability Requirements
+
+The project should be tested against at least these categories.
+
+### Test 1 — Simple question
+
+```text
+"What is LangGraph?"
+```
+
+Expected:
+
+No unnecessary tools.
+
+---
+
+### Test 2 — Search
+
+```text
+"What are the latest AI trends?"
+```
+
+Expected:
+
+Web search.
+
+---
+
+### Test 3 — Calculation
+
+```text
+"What is 15% of ₹80,000?"
+```
+
+Expected:
+
+Calculator.
+
+---
+
+### Test 4 — Multi-tool
+
+```text
+"Research three GPUs and calculate their price/performance."
+```
+
+Expected:
+
+Web search → calculator → final answer.
+
+---
+
+### Test 5 — Text analysis
+
+Provide a block of text.
+
+Expected:
+
+Text analysis tool.
+
+---
+
+### Test 6 — Tool failure
+
+Simulate a failed tool.
+
+Expected:
+
+Agent handles it gracefully.
+
+---
+
+### Test 7 — Maximum iterations
+
+Force a situation where the agent keeps requesting information.
+
+Expected:
+
+Agent stops after the configured limit.
+
+---
+
+# 17. Streamlit Interface
+
+The UI should remain simple.
+
+Example:
+
+```text
+--------------------------------------------------
+        AI Research & Decision-Making Agent
+--------------------------------------------------
+
+Enter your research task:
+
+[ Compare NVIDIA and AMD GPUs for AI workloads      ]
+
+[ Run Agent ]
+
+--------------------------------------------------
+
+Agent Activity
+
+✓ Task understood
+✓ Web search executed
+✓ Calculator executed
+✓ Results analyzed
+
+--------------------------------------------------
+
+Final Answer
+
+...
+--------------------------------------------------
+```
+
+The UI does not need:
+
+* authentication
+* database
+* dashboards
+* complicated frontend
+* user accounts
+
+The objective is to demonstrate the agent.
+
+---
+
+# 18. Show Agent Activity
+
+One useful feature is an **agent execution trace**.
+
+For example:
+
+```text
+Task received
+
+↓
+
+Agent decided:
+Web search required
+
+↓
+
+Web Search Tool
+Query:
+"NVIDIA H100 price specifications"
+
+↓
+
+Tool result received
+
+↓
+
+Agent decided:
+Calculation required
+
+↓
+
+Calculator Tool
+Expression:
+...
+
+↓
+
+Agent decided:
+Enough information
+
+↓
+
+Final answer generated
+```
+
+This is excellent for learning because I can actually see what the agent is doing.
+
+---
+
+# 19. Recommended Project Structure
+
+Use a clean but not over-engineered structure.
+
+```text
+ai-research-agent/
+│
+├── app.py
+│
+├── agent/
+│   ├── __init__.py
+│   ├── graph.py
+│   ├── state.py
+│   ├── nodes.py
+│   └── router.py
+│
+├── tools/
+│   ├── __init__.py
+│   ├── web_search.py
+│   ├── calculator.py
+│   └── text_analysis.py
+│
+├── config/
+│   └── settings.py
+│
+├── tests/
+│   ├── test_calculator.py
+│   ├── test_tools.py
+│   └── test_agent.py
+│
+├── .env
+├── .gitignore
+├── requirements.txt
+└── README.md
+```
+
+Do not create additional folders unless there is a real reason.
+
+---
+
+# 20. Development Phases
+
+This is very important.
+
+**Do NOT ask Antigravity to build everything at once.**
+
+Build it in phases.
+
+---
+
+## Phase 0 — Environment
+
+Learn:
+
+* Python virtual environment
+* package installation
+* environment variables
+* API keys
+* project structure
+
+Create:
+
+```text
+.venv
+.env
+.gitignore
+requirements.txt
+```
+
+Verify:
+
+```text
+Python works
+LLM API works
+```
+
+---
+
+# Phase 1 — Basic LLM Application
+
+Before LangGraph.
+
+Build:
+
+```text
+User
+ ↓
+LLM
+ ↓
+Response
+```
+
+Learn:
+
+* LLM initialization
+* prompts
+* messages
+* invoking the model
+* response handling
+
+Do not move forward until I understand this.
+
+---
+
+# Phase 2 — First LangGraph
+
+Build the smallest possible graph:
+
+```text
+START
+ ↓
+LLM Node
+ ↓
+END
+```
+
+Learn:
+
+* State
+* Graph
+* Node
+* START
+* END
+* graph compilation
+* graph invocation
+
+---
+
+# Phase 3 — Add a Tool
+
+Build:
+
+```text
+START
+ ↓
+Agent
+ ↓
+Tool
+ ↓
+Agent
+ ↓
+END
+```
+
+Start with the calculator because it is deterministic and easy to test.
+
+Learn:
+
+* tool definition
+* tool schema
+* tool binding
+* tool call
+* tool result
+* tool node
+* returning results to the agent
+
+---
+
+# Phase 4 — Conditional Routing
+
+Implement:
+
+```text
+Agent
+  │
+  ├── Calculator
+  │
+  └── Final Answer
+```
+
+The agent decides whether calculator usage is necessary.
+
+Learn:
+
+* conditional edges
+* routing functions
+* tool-call detection
+
+---
+
+# Phase 5 — Multiple Tools
+
+Add:
+
+```text
+Web Search
+Calculator
+Text Analysis
+```
+
+Architecture:
+
+```text
+                 ┌── Web Search
+                 │
+Agent ───────────┼── Calculator
+                 │
+                 └── Text Analysis
+```
+
+Learn:
+
+* multiple tools
+* tool selection
+* tool schemas
+* tool execution
+* tool results
+
+---
+
+# Phase 6 — Agent Loop
+
+Build:
+
+```text
+Agent
+ ↓
+Tool
+ ↓
+Agent
+ ↓
+Tool
+ ↓
+Agent
+ ↓
+Final Answer
+```
+
+Learn:
+
+* iterative execution
+* state updates
+* previous messages
+* stopping conditions
+* maximum iterations
+
+This is the most important LangGraph phase.
+
+---
+
+# Phase 7 — Error Handling
+
+Add handling for:
+
+* API errors
+* search failures
+* invalid tool arguments
+* calculator errors
+* empty results
+* unsupported requests
+* iteration limit
+
+---
+
+# Phase 8 — Streamlit
+
+Create:
+
+```text
+Input
+ ↓
+Run Agent
+ ↓
+Show execution
+ ↓
+Show final answer
+```
+
+Keep it simple.
+
+---
+
+# Phase 9 — Testing
+
+Create test cases.
+
+At minimum:
+
+```text
+Simple question
+Calculation
+Web research
+Text analysis
+Multi-tool task
+Tool failure
+Invalid request
+Iteration limit
+```
+
+---
+
+# Phase 10 — Documentation
+
+README should explain:
+
+1. Project overview
+2. Architecture
+3. Technologies
+4. How the agent works
+5. Tools
+6. LangGraph workflow
+7. Installation
+8. Environment variables
+9. Running the project
+10. Example queries
+11. Testing
+12. Limitations
+13. Future improvements
+
+---
+
+# 21. What NOT to Add
+
+Keep this project focused.
+
+Do **not** add these initially:
+
+```text
+❌ Pinecone
+❌ Vector database
+❌ MongoDB
+❌ Redis
+❌ Google Drive
+❌ OCR
+❌ Multi-agent architecture
+❌ MCP
+❌ Docker
+❌ Kubernetes
+❌ Authentication
+❌ Long-term memory
+❌ Complex observability
+❌ Complex frontend
+❌ Multiple LLM providers
+❌ Autonomous unrestricted loops
+```
+
+These can become future projects/features.
+
+---
+
+# 22. Optional Future Extensions
+
+Only after the core project is complete.
+
+Possible extensions:
+
+### Extension 1 — MCP
+
+Convert some tools into MCP tools.
+
+This would make a good **future Project 3**.
+
+---
+
+### Extension 2 — Conversation Memory
+
+Allow the agent to remember previous turns.
+
+---
+
+### Extension 3 — More Tools
+
+For example:
+
+```text
+Weather
+News
+Currency conversion
+GitHub
+```
+
+Only if useful.
+
+---
+
+### Extension 4 — Better Research
+
+Add:
+
+```text
+Search
+→ source filtering
+→ result extraction
+→ comparison
+→ recommendation
+```
+
+---
+
+# 23. Free-Cost Design
+
+The project should be designed to minimize cost.
+
+Use:
+
+* Python — free
+* VS Code — free
+* LangGraph — open source
+* LangChain — open source
+* Streamlit — free
+* Git — free
+* GitHub — free
+* Calculator — local
+* Text analysis — local where possible
+
+External services may have free-tier limits or usage charges.
+
+Therefore:
+
+### Important
+
+Do not hard-code paid APIs.
+
+Do not create unnecessary API calls.
+
+Do not continuously loop.
+
+Do not run background agents.
+
+Keep development usage controlled.
+
+Before choosing a specific search or LLM provider, verify its **current pricing/free tier** rather than assuming it is permanently free.
+
+---
+
+# 24. Environment Variables
+
+Use `.env`.
+
+Example:
+
+```env
+LLM_API_KEY=your_key_here
+SEARCH_API_KEY=your_key_here
+```
+
+Never commit `.env`.
+
+`.gitignore`:
+
+```text
+.env
+.venv/
+__pycache__/
+*.pyc
+```
+
+The actual variable names should be chosen based on the providers selected during implementation.
+
+---
+
+# 25. Important Learning Rule for Antigravity
+
+This is probably the most important instruction in the entire project.
+
+**Antigravity must not simply generate the entire project for me.**
+
+For every implementation phase, follow this workflow:
+
+```text
+1. Explain the concept
+        ↓
+2. Show the architecture
+        ↓
+3. Explain why it is needed
+        ↓
+4. Implement the smallest version
+        ↓
+5. Run it
+        ↓
+6. Test it
+        ↓
+7. Explain the code line-by-line where necessary
+        ↓
+8. Give me a small exercise
+        ↓
+9. Only then move to the next phase
+```
+
+I want to **learn and implement in parallel**.
+
+---
+
+# 26. Antigravity Instruction
+
+Give Antigravity the following instruction:
+
+> **Do not generate the entire project in one shot.**
+>
+> Act as my AI engineering mentor and coding assistant.
+>
+> I am building an **AI Research & Decision-Making Agent using LangGraph**.
+>
+> My primary goal is not only to finish the project but to understand LangGraph and agentic AI deeply enough to explain the architecture and code in an interview.
+>
+> Build the project incrementally with me.
+>
+> For every phase:
+>
+> 1. Explain the concept in simple technical language.
+> 2. Explain why we need it in this project.
+> 3. Show the architecture/flow.
+> 4. Ask me to implement or understand the concept before moving forward.
+> 5. Generate only the minimum code required for the current phase.
+> 6. Explain important parts of the code.
+> 7. Tell me exactly how to run it in VS Code.
+> 8. Give me expected output.
+> 9. Help me test it.
+> 10. Deliberately test failure cases where appropriate.
+> 11. Give me a small exercise/change to make myself.
+> 12. Review my implementation before proceeding.
+>
+> Do not over-engineer the application.
+>
+> Do not introduce unnecessary technologies.
+>
+> Do not add databases, vector stores, multi-agent systems, MCP, Docker, Kubernetes, authentication, or long-term memory unless explicitly requested later.
+>
+> The project should remain intermediate/upper-intermediate and understandable.
+
+---
+
+# 27. Required Learning Sequence
+
+Antigravity should follow this exact sequence:
+
+```text
+PHASE 0
+Environment
+    ↓
+PHASE 1
+Basic LLM application
+    ↓
+PHASE 2
+Basic LangGraph
+    ↓
+PHASE 3
+Calculator Tool
+    ↓
+PHASE 4
+Conditional Routing
+    ↓
+PHASE 5
+Multiple Tools
+    ↓
+PHASE 6
+Agent Loop
+    ↓
+PHASE 7
+Error Handling
+    ↓
+PHASE 8
+Streamlit
+    ↓
+PHASE 9
+Testing
+    ↓
+PHASE 10
+README + GitHub
+    ↓
+FINAL PROJECT
+```
+
+---
+
+# 28. Interview Knowledge I Should Gain
+
+After completing the project, I should be able to explain:
+
+### LangGraph
+
+* What is LangGraph?
+* Why use LangGraph?
+* What is a graph?
+* What is a node?
+* What is an edge?
+* What is conditional routing?
+* What is state?
+* Why is state important?
+* What are START and END?
+* What is graph compilation?
+
+### Agents
+
+* What is an AI agent?
+* How is an agent different from a normal LLM application?
+* What is tool calling?
+* How does an agent choose a tool?
+* How does the agent receive tool results?
+* How does the agent decide whether another tool is required?
+
+### Tools
+
+* What is a tool?
+* How do you define a tool?
+* What is a tool schema?
+* Why use a calculator tool instead of asking the LLM to calculate?
+* How do you handle tool failures?
+
+### Agent Loop
+
+Understand:
+
+```text
+Agent
+ ↓
+Tool
+ ↓
+Observation
+ ↓
+Agent
+ ↓
+Decision
+ ↓
+Tool / Final Answer
+```
+
+And explain how infinite loops are prevented.
+
+---
+
+# 29. Final Architecture
+
+The final project should approximately look like:
+
+```text
+                         USER
+                           │
+                           ▼
+                    STREAMLIT UI
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   AGENT     │
+                    │    NODE     │
+                    └──────┬──────┘
+                           │
+                     Decision
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+   ┌────────────┐   ┌────────────┐   ┌──────────────┐
+   │ Web Search │   │ Calculator │   │ Text Analysis│
+   │    Tool    │   │    Tool    │   │     Tool     │
+   └──────┬─────┘   └──────┬─────┘   └──────┬───────┘
+          │                │                │
+          └────────────────┼────────────────┘
+                           │
+                           ▼
+                     TOOL RESULTS
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │    AGENT    │
+                    │ Re-evaluate │
+                    └──────┬──────┘
+                           │
+                 ┌─────────┴─────────┐
+                 │                   │
+          More information       Enough info
+                 │                   │
+                 ▼                   ▼
+              TOOL(S)          FINAL ANSWER
+                                     │
+                                     ▼
+                                   USER
+```
+
+---
+
+# 30. Definition of Done
+
+The project is considered complete only when:
+
+* [ ] I understand LangGraph basics.
+* [ ] I understand graph state.
+* [ ] I understand nodes.
+* [ ] I understand edges.
+* [ ] I understand conditional routing.
+* [ ] I understand tool calling.
+* [ ] I have implemented at least three tools.
+* [ ] The agent can choose tools.
+* [ ] The agent can use multiple tools sequentially.
+* [ ] Tool results return to the agent.
+* [ ] The agent can decide whether more work is required.
+* [ ] There is a maximum iteration limit.
+* [ ] Tool failures are handled.
+* [ ] Invalid requests are handled.
+* [ ] Streamlit UI works.
+* [ ] Tests are written.
+* [ ] README is complete.
+* [ ] Code is pushed to GitHub.
+* [ ] I can explain the architecture without looking at the code.
+* [ ] I can explain why this project is an **agentic AI system rather than simply a RAG application**.
+
+---
+
+## One important rule for us
+
+I would **not start by asking Antigravity to create the folder structure and all the files**.
+
+Start with **Phase 0 → Phase 1**.
+
+Once the basic LLM application works, we deliberately build the **smallest LangGraph possible**:
+
+```text
+START → LLM → END
+```
+
+Then:
+
+```text
+START → Agent → Calculator → Agent → END
+```
+
+Then:
+
+```text
+             ┌→ Web Search ─┐
+START → Agent ├→ Calculator ─┼→ Agent → END
+             └→ Text Analysis┘
+```
+
+That progression is what will make you genuinely understand LangGraph rather than just ending up with a working GitHub repository.
