@@ -149,7 +149,7 @@ cd "AI Research & Decision-Making Agent"
 # Create virtual environment
 python -m venv .venv
 
-# Activate virtual environment
+# Activate the virtual environment
 # Windows (PowerShell):
 .\.venv\Scripts\Activate.ps1
 # macOS/Linux:
@@ -157,13 +157,13 @@ source .venv/bin/activate
 ```
 
 ### Step 2: Install Dependencies
-```bash
+```
 pip install -r requirements.txt
 ```
 
 ### Step 3: Configure Environment Variables
 Copy `.env.example` to `.env`:
-```bash
+```
 cp .env.example .env
 ```
 Add your API credentials (either Google Gemini or OpenAI):
@@ -183,14 +183,14 @@ MAX_ITERATIONS=5
 ## 🖥️ 7. Running the Application
 
 ### Launch the Streamlit Web Interface:
-```bash
+```
 streamlit run app.py
 ```
 Open your browser at `http://localhost:8501`.
 
 ### Run Interactive Console Scripts:
 Each developmental phase has a standalone verification script:
-```bash
+```
 python phase6_agent_loop.py
 python phase7_error_handling.py
 ```
@@ -200,7 +200,7 @@ python phase7_error_handling.py
 ## 🧪 8. Running Automated Tests
 
 Run the full pytest suite:
-```bash
+```
 python -m pytest -v
 ```
 
