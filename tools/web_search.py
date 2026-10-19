@@ -1,5 +1,4 @@
 from langchain_core.tools import tool
-from langchain_community.tools import DuckDuckGoSearchRun
 
 @tool
 def web_search(query: str) -> str:
@@ -9,10 +8,22 @@ def web_search(query: str) -> str:
         query: Clear search keywords (e.g., 'NVIDIA H100 GPU price specifications', 'PostgreSQL vs MongoDB differences').
     """
     try:
-        search = DuckDuckGoSearchRun()
-        results = search.run(query)
+        try:
+            from ddgs import DDGS
+        except ImportError:
+            from duckduckgo_search import DDGS
+
+        results = DDGS().text(query, max_results=4)
         if not results:
             return "No relevant search results found."
-        return str(results)
+
+        formatted_results = []
+        for r in results:
+            title = r.get("title", "")
+            body = r.get("body", "")
+            href = r.get("href", "")
+            formatted_results.append(f"Title: {title}\nSnippet: {body}\nURL: {href}")
+
+        return "\n\n".join(formatted_results)
     except Exception as e:
         return f"Web search error: {str(e)}"
